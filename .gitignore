@@ -1,0 +1,15 @@
+### Editors ###
+../.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/*
+.idea
+!.idea/runConfigurations/*
+.access^
+temp/*
+*.iml
+
+### Node ###
+node_modules
+.env
+dist
