@@ -1,119 +1,76 @@
-import Validation from './validation';
-import {Validator} from 'fluentvalidation-ts';
-import {Logger} from 'winston';
 import {NextFunction, Request, Response} from 'express';
+import {Logger} from 'winston';
+import {Validation} from './validation';
+import {ObjectSchema, ValidationError, ValidationResult} from 'joi';
 
-describe('Validation middleware tests', () => {
-  it('should return 400 if validation returns errors', () => {
-    const logger = createMockLogger();
-    const validator = createValidator();
-    // - Mock validate method to return a validation error
-    validator.validate = mockValidationError;
+describe('Validation', () => {
+  let validation: Validation<any>;
+  let req: Request;
+  let res: Response;
+  let next: NextFunction;
+  let logger: Logger;
 
-    // - Create validation middleware
-    const validationMiddleware = createValidationMiddleware(validator, logger);
+  beforeEach(() => {
+    logger = {error: jest.fn()} as unknown as Logger;
+    const schema: ObjectSchema<any> = {
+      validate: jest.fn(),
+    } as unknown as ObjectSchema<any>;
 
-    const response = createMockResponse();
-    const request = createMockRequest();
-    const next = createMockNextFunction();
+    validation = new Validation<any>(schema, logger);
 
-    // - Mock response object to track the status code
-    let statusCode;
-    response.sendStatus = jest
-      .fn()
-      .mockImplementation(sentStatusCode => (statusCode = sentStatusCode));
-
-    validationMiddleware.validate(request, response, next);
-
-    expect(statusCode).toBe(400);
+    req = {} as Request;
+    res = {sendStatus: jest.fn()} as unknown as Response;
+    next = jest.fn();
   });
 
-  it('should not call next function only once if validation returns errors', () => {
-    const logger = createMockLogger();
-    const validator = createValidator();
-    // - Mock validate method to return a validation error
-    validator.validate = mockValidationError;
-
-    // - Create validation middleware
-    const validationMiddleware = createValidationMiddleware(validator, logger);
-
-    const response = createMockResponse();
-    const request = createMockRequest();
-    const next = createMockNextFunction();
-
-    validationMiddleware.validate(request, response, next);
-
-    expect(next).not.toHaveBeenCalled();
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
-  it('should not set status if validation does not return error', () => {
-    const logger = createMockLogger();
-    const validator = createValidator();
-    // - Mock validate method to return a successful validation result
-    validator.validate = mockValidationSuccess;
+  describe('validate', () => {
+    test('should call the schema validate method with the request body', () => {
+      const schema = validation['schema'] as ObjectSchema<any>;
+      const validateSpy = jest.spyOn(schema, 'validate');
 
-    // - Create validation middleware
-    const validationMiddleware = createValidationMiddleware(validator, logger);
+      req.body = {name: 'John Doe', age: 25};
 
-    const response = createMockResponse();
-    const request = createMockRequest();
-    const next = createMockNextFunction();
+      validation.validate(req, res, next);
 
-    // - Mock response object to track the status code
-    let statusCode;
-    response.sendStatus = jest
-      .fn()
-      .mockImplementation(sentStatusCode => (statusCode = sentStatusCode));
+      expect(validateSpy).toHaveBeenCalledWith(req.body);
+    });
 
-    validationMiddleware.validate(request, response, next);
+    test('should call the next function if validation succeeds', () => {
+      const schema = validation['schema'] as ObjectSchema<any>;
+      const validationResult: ValidationResult<any> = {
+        error: undefined,
+        value: req.body,
+      };
+      jest.spyOn(schema, 'validate').mockReturnValueOnce(validationResult);
 
-    expect(statusCode).toBeUndefined();
-  });
+      validation.validate(req, res, next);
 
-  it('should call next function if validation does not return error ', () => {
-    const logger = createMockLogger();
-    const validator = createValidator();
-    // - Mock validate method to return a successful validation result
-    validator.validate = mockValidationSuccess;
+      expect(next).toHaveBeenCalled();
+      expect(res.sendStatus).not.toHaveBeenCalled();
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+    test('should log an error, send 400 status, and not call the next function if validation fails', () => {
+      const schema = validation['schema'] as ObjectSchema<any>;
+      const error: ValidationError = new Error(
+        'Validation error'
+      ) as ValidationError;
+      error.isJoi = true;
+      error.details = [];
+      error.annotate = () => '';
+      error._original = req.body;
+      jest
+        .spyOn(schema, 'validate')
+        .mockReturnValueOnce({error, value: undefined});
 
-    // - Create validation middleware
-    const validationMiddleware = createValidationMiddleware(validator, logger);
+      validation.validate(req, res, next);
 
-    const response = createMockResponse();
-    const request = createMockRequest();
-    const next = createMockNextFunction();
-
-    validationMiddleware.validate(request, response, next);
-
-    expect(next).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith('validation error', error);
+      expect(res.sendStatus).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
+    });
   });
 });
-
-const createValidator = (): Validator<any> => new Validator<any>();
-
-const createValidationMiddleware = (
-  validator: Validator<any>,
-  logger: Logger
-): Validation<any> => new Validation(validator, logger);
-
-const createMockResponse = (): Response => {
-  const response = {} as Response;
-  response.sendStatus = jest.fn();
-  return response;
-};
-
-const createMockRequest = (): Request => ({} as Request);
-
-const createMockLogger = (): Logger => {
-  const logger = {} as Logger;
-  logger.info = jest.fn();
-  logger.debug = jest.fn();
-  logger.error = jest.fn();
-  return logger;
-};
-
-const createMockNextFunction = (): NextFunction => jest.fn();
-const mockValidationError = jest
-  .fn()
-  .mockReturnValue({testError: 'error message'});
-const mockValidationSuccess = jest.fn().mockReturnValue({});

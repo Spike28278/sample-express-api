@@ -18,7 +18,7 @@ export class App {
     @inject(DIToken.Express) app: Express,
     @inject(DIToken.Logger) logger: Logger,
     @inject(DIToken.Routes) routes: IRoute[],
-    @inject(DIToken.AppConfig) config: IAppConfig,
+    @inject(DIToken.AppConfig) config: IAppConfig
   ) {
     this.app = app;
     this.logger = logger;

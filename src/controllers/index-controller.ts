@@ -4,7 +4,7 @@ import {inject, injectable} from 'tsyringe';
 import {DIToken} from '../constants';
 
 @injectable()
-export class Index {
+export class IndexController {
   private logger: Logger;
 
   constructor(@inject(DIToken.Logger) logger: Logger) {
