@@ -6,14 +6,9 @@ import express, {Express, Router} from 'express';
 import {DIToken, Environment} from './constants';
 import winston, {Logger} from 'winston';
 import {IAppConfig} from './models/app-config';
-import {
-  generateAppConfig,
-} from './configuration';
+import {generateAppConfig} from './configuration';
 import {IRoute} from './models/route';
 import {Route} from './routes/route';
-import {IMessage} from './models/message';
-import {MessageRuleset} from './validators/message-ruleset';
-import Validation from './middleware/validation';
 
 (async (): Promise<void> => {
   dotenv.config();
@@ -39,14 +34,6 @@ import Validation from './middleware/validation';
     },
   });
 
-  container.register<Validation<IMessage>>(DIToken.MessageValidator, {
-    useFactory: () => {
-      return new Validation<IMessage>(
-        container.resolve(MessageRuleset),
-        container.resolve(DIToken.Logger)
-      );
-    },
-  });
   container.register<Express>(DIToken.Express, {useFactory: () => express()});
   container.register<Router>(DIToken.Router, {useFactory: () => Router()});
 

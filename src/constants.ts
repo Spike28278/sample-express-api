@@ -4,7 +4,6 @@ export enum DIToken {
   Routes = 'Routes',
   Logger = 'Logger',
   Express = 'Express',
-  MessageValidator = 'MessageValidator',
 }
 
 export enum Environment {

@@ -15,9 +15,4 @@ export class Index {
     this.logger.info('Received health check request');
     res.status(200).send({status: 'available'});
   };
-
-  public postAction = async (req: Request, res: Response): Promise<void> => {
-    this.logger.info('Received POST request');
-    res.sendStatus(200);
-  };
 }
