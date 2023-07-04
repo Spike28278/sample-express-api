@@ -16,11 +16,11 @@ export class Validation<T> {
 
     if (result?.error) {
       this.logger.error('validation error', result.error);
-      res.sendStatus(400);
+      res.status(400).send({
+        error: result.error.details?.[0]?.message || 'Validation error',
+      });
       return;
     }
     return next();
   };
 }
-
-export default Validation;

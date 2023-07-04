@@ -1,5 +1,5 @@
 import {IRoute} from './models/route';
-import express, {Express, NextFunction, Request, Response} from 'express';
+import express, {Express, Request, Response} from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import {Logger} from 'winston';
@@ -31,12 +31,10 @@ export class App {
     this.initializeRoutes();
 
     // Error handling. Must be registered after all routes and middleware
-    this.app.use(
-      (err: any, req: Request, res: Response, next: NextFunction) => {
-        this.logger.error(err);
-        res.status(500);
-      }
-    );
+    this.app.use((err: Error, req: Request, res: Response) => {
+      this.logger.error(err);
+      res.status(500).send({error: err.message});
+    });
 
     this.app.listen(this.config.port, () => {
       this.logger.info(
@@ -57,5 +55,3 @@ export class App {
     this.app.use(express.json());
   }
 }
-
-export default App;

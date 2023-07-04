@@ -8,7 +8,7 @@ import winston, {Logger} from 'winston';
 import {IAppConfig} from './models/app-config';
 import {generateAppConfig} from './configuration';
 import {IRoute} from './models/route';
-import {Route} from './routes/route';
+import {IndexRoute} from './routes/index-route';
 
 (async (): Promise<void> => {
   dotenv.config();
@@ -30,7 +30,7 @@ import {Route} from './routes/route';
 
   container.register<IRoute[]>(DIToken.Routes, {
     useFactory: () => {
-      return [container.resolve(Route)];
+      return [container.resolve(IndexRoute)];
     },
   });
 

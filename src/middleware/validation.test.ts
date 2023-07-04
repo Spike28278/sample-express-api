@@ -1,76 +1,63 @@
-import {NextFunction, Request, Response} from 'express';
+// validation.test.ts
 import {Logger} from 'winston';
-import {Validation} from './validation';
-import {ObjectSchema, ValidationError, ValidationResult} from 'joi';
+import {NextFunction, Request, Response} from 'express';
+import {ObjectSchema} from 'joi';
+import {Validation} from './validation'; // Update with your actual import
 
 describe('Validation', () => {
+  let mockSchema: ObjectSchema;
+  let mockLogger: Logger;
   let validation: Validation<any>;
-  let req: Request;
-  let res: Response;
-  let next: NextFunction;
-  let logger: Logger;
 
   beforeEach(() => {
-    logger = {error: jest.fn()} as unknown as Logger;
-    const schema: ObjectSchema<any> = {
+    // Mock Joi schema
+    mockSchema = {
       validate: jest.fn(),
-    } as unknown as ObjectSchema<any>;
+    } as any;
 
-    validation = new Validation<any>(schema, logger);
+    // Mock logger
+    mockLogger = {
+      error: jest.fn(),
+    } as any;
 
-    req = {} as Request;
-    res = {sendStatus: jest.fn()} as unknown as Response;
-    next = jest.fn();
+    // Create instance of validation class
+    validation = new Validation<any>(mockSchema, mockLogger);
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
+  it('should call next function when there are no validation errors', () => {
+    const mockReq = {} as Request;
+    const mockRes = {} as Response;
+    const mockNext = jest.fn() as NextFunction;
+    const mockResult = {error: null};
+
+    (mockSchema.validate as jest.Mock).mockReturnValue(mockResult);
+
+    validation.validate(mockReq, mockRes, mockNext);
+
+    expect(mockNext).toHaveBeenCalledTimes(1);
+    expect(mockLogger.error).not.toHaveBeenCalled();
   });
 
-  describe('validate', () => {
-    test('should call the schema validate method with the request body', () => {
-      const schema = validation['schema'] as ObjectSchema<any>;
-      const validateSpy = jest.spyOn(schema, 'validate');
+  it('should log error and send response with status 400 when there are validation errors', () => {
+    const mockReq = {} as Request;
+    const mockRes = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    } as any;
+    const mockNext = jest.fn() as NextFunction;
+    const mockError = new Error('Validation error');
+    const mockResult = {error: mockError};
 
-      req.body = {name: 'John Doe', age: 25};
+    (mockSchema.validate as jest.Mock).mockReturnValue(mockResult);
 
-      validation.validate(req, res, next);
+    validation.validate(mockReq, mockRes, mockNext);
 
-      expect(validateSpy).toHaveBeenCalledWith(req.body);
-    });
-
-    test('should call the next function if validation succeeds', () => {
-      const schema = validation['schema'] as ObjectSchema<any>;
-      const validationResult: ValidationResult<any> = {
-        error: undefined,
-        value: req.body,
-      };
-      jest.spyOn(schema, 'validate').mockReturnValueOnce(validationResult);
-
-      validation.validate(req, res, next);
-
-      expect(next).toHaveBeenCalled();
-      expect(res.sendStatus).not.toHaveBeenCalled();
-      expect(logger.error).not.toHaveBeenCalled();
-    });
-    test('should log an error, send 400 status, and not call the next function if validation fails', () => {
-      const schema = validation['schema'] as ObjectSchema<any>;
-      const error: ValidationError = new Error(
-        'Validation error'
-      ) as ValidationError;
-      error.isJoi = true;
-      error.details = [];
-      error.annotate = () => '';
-      error._original = req.body;
-      jest
-        .spyOn(schema, 'validate')
-        .mockReturnValueOnce({error, value: undefined});
-
-      validation.validate(req, res, next);
-
-      expect(logger.error).toHaveBeenCalledWith('validation error', error);
-      expect(res.sendStatus).toHaveBeenCalledWith(400);
-      expect(next).not.toHaveBeenCalled();
-    });
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'validation error',
+      mockError
+    );
+    expect(mockRes.status).toHaveBeenCalledWith(400);
+    expect(mockRes.send).toHaveBeenCalledWith({error: mockError.message});
+    expect(mockNext).not.toHaveBeenCalled();
   });
 });

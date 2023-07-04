@@ -5,7 +5,7 @@ import {inject, injectable} from 'tsyringe';
 import {DIToken} from '../constants';
 
 @injectable()
-export class Route implements IRoute {
+export class IndexRoute implements IRoute {
   segment = '/';
   router: Router;
   private indexController: IndexController;
