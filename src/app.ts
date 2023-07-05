@@ -1,6 +1,7 @@
 import {IRoute} from './models/route';
 import express, {Express, Request, Response} from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import helmet from 'helmet';
 import {Logger} from 'winston';
 import {IAppConfig} from './models/app-config';
@@ -52,6 +53,7 @@ export class App {
   private initializeMiddlewares(): void {
     this.app.use(cors());
     this.app.use(helmet());
+    this.app.use(compression());
     this.app.use(express.json());
   }
 }
