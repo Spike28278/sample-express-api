@@ -21,9 +21,6 @@ _(don't include '<' or '>')_
 PORT=<port-number-here>
 BASE_PATH=<base-path-here>
 ```
->Note: If some or all of their values are not supplied, or if a .env file does not exist, default values will be used.
-
->Note: The JWT middleware included in this container needs to be registered with express as middleware if needed, by default it this is not applied.
 
 Finally, you'll just need to run the application in either development or production mode:
 
