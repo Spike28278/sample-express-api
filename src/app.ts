@@ -1,5 +1,5 @@
 import {IRoute} from './models/route';
-import express, {Express, Request, Response} from 'express';
+import express, {Express, NextFunction, Request, Response} from 'express';
 import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
@@ -32,10 +32,12 @@ export class App {
     this.initializeRoutes();
 
     // Error handling. Must be registered after all routes and middleware
-    this.app.use((err: Error, req: Request, res: Response) => {
-      this.logger.error(err);
-      res.status(500).send({error: err.message});
-    });
+    this.app.use(
+      (err: Error, req: Request, res: Response, next: NextFunction) => {
+        this.logger.error(err);
+        res.status(500).send({error: err.message});
+      }
+    );
 
     this.app.listen(this.config.port, () => {
       this.logger.info(
@@ -46,7 +48,7 @@ export class App {
 
   private initializeRoutes(): void {
     this.routes.forEach(route => {
-      this.app.use(this.config.basePath, route.router);
+      this.app.use(`/${this.config.basePath}`, route.router);
     });
   }
 
