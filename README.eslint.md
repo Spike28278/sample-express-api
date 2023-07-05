@@ -1,4 +1,4 @@
-#ESLint
+# ESLint
 
 This project uses eslint for code consistency.
 

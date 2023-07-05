@@ -24,7 +24,7 @@ BASE_PATH=<base-path-here>
 
 Finally, you'll just need to run the application in either development or production mode:
 
-###Dev:
+### Dev:
 
 In development mode:
 - Nodemon is used for watching for changes and automatically restarting after changes have been applied.
@@ -35,7 +35,7 @@ In development mode:
 
 >npm run start:dev
 
-###Prod:
+### Prod:
 In production mode:
 - Transpiled JavaScript will be run from the `outDir` specified in the `tsconfig.json` file. 
 >Note: Running in production locally may require you to run `npm run compile` as this will transpile the TypeScript code in to JavaScript.
