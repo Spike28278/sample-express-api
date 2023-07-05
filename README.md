@@ -20,10 +20,6 @@ _(don't include '<' or '>')_
 ```
 PORT=<port-number-here>
 BASE_PATH=<base-path-here>
-METRICS_INTERVAL=<metrics-interval-here>
-JWT_SECRET=<jwt-secret>
-JWT_AUDIENCE=<jwt-audience>
-JWT_ISSUER=<jwt-issuer>
 ```
 >Note: If some or all of their values are not supplied, or if a .env file does not exist, default values will be used.
 
@@ -48,25 +44,3 @@ In production mode:
 >Note: Running in production locally may require you to run `npm run compile` as this will transpile the TypeScript code in to JavaScript.
 
 > npm run start
-
-
-## API
-### Routes
-- GET `<baseUrl>`:`<port-number>`/healthCheck
-
-    - Description: _Basic application health check_
-    - Query Params: _None_
-
-
-- POST `<baseUrl>`:`<port-number>`/
-    - Description: _Basic post endpoint_
-    - Body: [Message](#message)
-    
-## Model References
-
-### Message
-
-| Property | Description | Required | Example  |
-|----------|-------------|----------|----------|
-| name     | Text        | True     | John Doe |
-| age      | Integer     | True     | 30       |
